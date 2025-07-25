@@ -1,7 +1,98 @@
 import 'package:flutter/material.dart';
+import '../widgets/Panel_usuario.dart';
+import '../widgets/Panel_medico.dart';
+import '../models/Usuario.dart';
+import '../models/Medico.dart';
+import '../screens/Pantalla_Menu_Principal.dart';
 
-class Pantalla_Crear_cuenta extends StatelessWidget {
+import '../services/Controlador_Mongo.dart';
+
+class Pantalla_Crear_cuenta extends StatefulWidget {
   const Pantalla_Crear_cuenta({super.key});
+
+  @override
+  State<Pantalla_Crear_cuenta> createState() => _Pantalla_Crear_cuentaState();
+}
+
+class _Pantalla_Crear_cuentaState extends State<Pantalla_Crear_cuenta> {
+  String _tipoUsuario = 'paciente';
+  Usuario _usuarioBase= Usuario(
+    name: '',
+    app_pat: '',
+    app_mat: '',
+    email: '',
+    password: '',
+    type_user: 'paciente',
+    fecha_nacimiento: DateTime.now(),
+    telefono: 0,
+  );
+  Medico? _datosMedico=null;
+  final GlobalKey<FormularioUsuarioWidgetState> _formKeyUsuario = GlobalKey();
+  final GlobalKey<FormularioMedicoWidgetState> _formKeyMedico = GlobalKey();
+
+void _guardarDesdePantalla() async {
+  final usuarioValido = _formKeyUsuario.currentState?.verificar_formulario() ?? false;
+  final medicoValido = _tipoUsuario != 'medico' || 
+                      (_formKeyMedico.currentState?.verificar_formulario() ?? false);
+
+  if (!usuarioValido || !medicoValido) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Por favor complete todos los campos requeridos')),
+    );
+    return;
+  }
+
+  try {
+    final controlador = Controlador_Mongo();
+    await controlador.connect();
+
+    if (_tipoUsuario == 'medico' && _usuarioBase != null && _datosMedico != null) {
+      final medicoCompleto = Medico(
+        name: _usuarioBase!.name,
+        app_pat: _usuarioBase!.app_pat,
+        app_mat: _usuarioBase!.app_mat,
+        email: _usuarioBase!.email,
+        password: _usuarioBase!.password,
+        type_user: _usuarioBase!.type_user,
+        fecha_nacimiento: _usuarioBase!.fecha_nacimiento,
+        telefono: _usuarioBase!.telefono,
+        cedula: _datosMedico!.cedula,
+        listadoPacientes: _datosMedico!.listadoPacientes,
+      );
+      
+      print('Médico creado: ${medicoCompleto.toJson()}');
+      await controlador.insertUsuario(medicoCompleto);
+    } 
+    else if (_usuarioBase != null) {
+      print('Paciente creado: ${_usuarioBase!.toJson()}');
+      await controlador.insertUsuario(_usuarioBase!);
+    }
+
+    await controlador.disconnect();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Datos guardados correctamente')),
+    );
+    
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al guardar: ${e.toString()}')),
+    );
+    print('Error: $e');
+  }
+}
+
+bool verificar_codigo(){
+  bool result = true;
+
+
+
+  return result;
+
+}
 
   @override
   Widget build(BuildContext context) {
@@ -13,19 +104,17 @@ class Pantalla_Crear_cuenta extends StatelessWidget {
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 20,
-            letterSpacing: 1.2,  // Espaciado entre letras
+            letterSpacing: 1.2,
           ),
         ),
         centerTitle: true,
         backgroundColor: Colors.blueAccent,
         elevation: 10,
-        shadowColor: Colors.blue[800],
+        shadowColor: Colors.blue,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(15),
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
         ),
-        toolbarHeight: 70,  // Altura personalizada de la AppBar
+        toolbarHeight: 70,
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -37,26 +126,93 @@ class Pantalla_Crear_cuenta extends StatelessWidget {
         ),
         child: Center(
           child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/cor.png',
-                  width: 150,
-                  height: 150,
-                  fit: BoxFit.contain,
-
+                const SizedBox(height: 30),
+                FormularioUsuarioWidget(
+                  key: _formKeyUsuario,
+                  tipoUsuario: _tipoUsuario,
+                  onGuardar: (usuario) {
+                     _usuarioBase = usuario ; // Cast explícito
+                  },
+                ), 
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ChoiceChip(
+                      label: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.person, color: Colors.blueAccent),
+                          SizedBox(width: 8),
+                          Text('Soy un Médico', style: TextStyle(color: Colors.blueAccent)),
+                        ],
+                      ),
+                      selected: _tipoUsuario == 'medico',
+                      onSelected: (selected) {
+                        setState(() {
+                          _tipoUsuario = selected ? 'medico' : 'paciente';
+                        });
+                      },
+                      selectedColor: Colors.white,
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(
+                          color: Colors.blueAccent,
+                          width: 2,
+                        ),
+                      ),
+                      elevation: 3,
+                      pressElevation: 5,
+                    ),
+                    const SizedBox(width: 10),
+                    ChoiceChip(
+                      label: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.elderly, color: Colors.blueAccent),
+                          SizedBox(width: 8),
+                          Text('Soy un Paciente', style: TextStyle(color: Colors.blueAccent)),
+                        ],
+                      ),
+                      selected: _tipoUsuario == 'paciente',
+                      onSelected: (selected) {
+                        setState(() {
+                          _tipoUsuario = selected ? 'paciente' : 'medico';
+                        });
+                      },
+                      selectedColor: Colors.white,
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(
+                          color: Colors.blueAccent,
+                          width: 2,
+                        ),
+                      ),
+                      elevation: 3,
+                      pressElevation: 5,
+                    ),
+                  ],
                 ),
+                if (_tipoUsuario == 'medico') ...[
+                  const SizedBox(height: 20),
+                  FormularioMedicoWidget(
+                    key: _formKeyMedico,
+                    tipoUsuario: _tipoUsuario,
+                    onGuardar: (medico) {
+                      _datosMedico = medico;
+                    },
+                  ),
+                ],
                 const SizedBox(height: 30),
                 SizedBox(
                   width: 250,
                   child: ElevatedButton(
-                    onPressed: () {
-                      /* Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => PIniciarSesion()),
-                      ); */
-                    },
+                    onPressed: _guardarDesdePantalla,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       foregroundColor: Colors.white,
@@ -68,48 +224,8 @@ class Pantalla_Crear_cuenta extends StatelessWidget {
                       shadowColor: Colors.blue[800],
                     ),
                     child: const Text(
-                      'Iniciar sesión',
+                      'Guardar',
                       style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: 250,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      /* Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => PCrearCuenta()),
-                      ); */
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.blueAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.blueAccent, width: 2),
-                      ),
-                      elevation: 3,
-                    ),
-                    child: const Text(
-                      'Crear cuenta',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                TextButton(
-                  onPressed: () {
-                    // Acción para "¿Olvidaste tu contraseña?"
-                  },
-                  child: Text(
-                    '¿Olvidaste tu contraseña?',
-                    style: TextStyle(
-                      color: Colors.blue[700],
-                      fontSize: 14,
-                      decoration: TextDecoration.underline,
                     ),
                   ),
                 ),

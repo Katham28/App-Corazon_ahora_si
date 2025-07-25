@@ -1,9 +1,9 @@
 import 'Usuario.dart';
 import 'Paciente.dart';
-import 'Cedula.dart';
+
 class Medico extends Usuario {
   List<Paciente> _listadoPacientes = [];
-  List<Cedula> _listadoCedulas = [];
+  int cedula;
 
   void addPaciente(Paciente paciente) {
     _listadoPacientes.add(paciente);
@@ -11,17 +11,11 @@ class Medico extends Usuario {
   void removePaciente(Paciente paciente) {
     _listadoPacientes.remove(paciente);
   }
-  void addCedula(Cedula cedula) {
-    _listadoCedulas.add(cedula);
-  }
-  void removeCedula(Cedula cedula) {
-    _listadoCedulas.remove(cedula);
-  }
 
   List<Paciente> get listadoPacientes => _listadoPacientes;
-  List<Cedula> get listadoCedulas => _listadoCedulas;
+
   
-  Medico({
+Medico({
     required String name,
     required String app_pat,
     required String app_mat,
@@ -30,7 +24,12 @@ class Medico extends Usuario {
     required String type_user,
     required DateTime fecha_nacimiento,
     required int telefono,
-  }) : super(
+     required int cedula,
+    List<Paciente>? listadoPacientes,  // Parámetro opcional
+
+  }) : _listadoPacientes = listadoPacientes ?? [],  // Asigna lista vacía si es null
+        cedula = cedula,
+        super(
           name: name,
           app_pat: app_pat,
           app_mat: app_mat,
@@ -40,6 +39,9 @@ class Medico extends Usuario {
           fecha_nacimiento: fecha_nacimiento,
           telefono: telefono,
         );
+  
+
+
 
   /* ╭───── JSON ─────╮ */
   factory Medico.fromJson(Map<String, dynamic> j) => Medico(
@@ -51,6 +53,7 @@ class Medico extends Usuario {
         type_user: j['ty']?.toString() ?? '',
         fecha_nacimiento: DateTime.tryParse(j['f']?.toString() ?? '') ?? DateTime(0),
         telefono: (j['t'] as num?)?.toInt() ?? 0,
+        cedula: (j['c'] as num?)?.toInt() ?? 0,
       );
 
   @override
@@ -63,5 +66,6 @@ class Medico extends Usuario {
         'ty': type_user,
         'f': fecha_nacimiento.toIso8601String(),
         't': telefono,
+        'c': cedula,
       };
 }

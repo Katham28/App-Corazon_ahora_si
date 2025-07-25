@@ -12,12 +12,12 @@ class MenuPrincipal extends StatelessWidget {
       await mongoService.connect();
       
       // Insertar un documento de prueba
-      final insertResult = await mongoService.insertOne('usuarios', {
+      final insertResult = await mongoService.insertOne('Medico', {
         'nombre': 'Usuario Prueba',
         'email': 'prueba@example.com',
         'fecha': DateTime.now()
       });
-      
+
       // Mostrar resultado
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
