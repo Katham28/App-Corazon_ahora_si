@@ -23,6 +23,8 @@ class FormularioMedicoWidgetState extends State<FormularioMedicoWidget> {
   final _verifiCtrl = TextEditingController();
 
   bool verificar_formulario() {
+      
+
     if (_formKey.currentState!.validate() && widget.tipoUsuario.isNotEmpty) {
       final medico = Medico(
         name: '',

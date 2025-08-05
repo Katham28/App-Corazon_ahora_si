@@ -82,6 +82,19 @@ Future<void> connect() async {
     }
   }
 
+  Future<Map<String, dynamic>?> getPacientePorCorreo(String correo) async {
+  _checkConnection();
+  try {
+    final collection = _db.collection('pacientes');
+    final paciente = await collection.findOne(where.eq('correo', correo));
+    return paciente;
+  } catch (e) {
+    print('Error al buscar paciente por correo: $e');
+    rethrow;
+  }
+}
+
+
   Future<List<Map<String, dynamic>>> find(
       String collectionName, [Map<String, dynamic>? filter]) async {
     _checkConnection();
@@ -94,6 +107,9 @@ Future<void> connect() async {
       rethrow;
     }
   }
+
+
+ 
 
 
 

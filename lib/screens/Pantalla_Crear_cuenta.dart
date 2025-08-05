@@ -29,60 +29,119 @@ class _Pantalla_Crear_cuentaState extends State<Pantalla_Crear_cuenta> {
   Medico? _datosMedico=null;
   final GlobalKey<FormularioUsuarioWidgetState> _formKeyUsuario = GlobalKey();
   final GlobalKey<FormularioMedicoWidgetState> _formKeyMedico = GlobalKey();
+  // Control para diálogo abierto
+  bool _dialogoAbierto = false;
+
+
+
+
+  void _mostrarDialogo(String mensaje) {
+    if (_dialogoAbierto) return;
+    _dialogoAbierto = true;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Expanded(child: Text(mensaje)),
+          ],
+        ),
+      ),
+    ).then((_) {
+      _dialogoAbierto = false;
+    });
+  }
+
+  void _cerrarDialogo() {
+    if (_dialogoAbierto && mounted && Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+      _dialogoAbierto = false;
+    }
+  }
 
 void _guardarDesdePantalla() async {
+
+  _mostrarDialogo('Guardando datos...');
   final usuarioValido = _formKeyUsuario.currentState?.verificar_formulario() ?? false;
   final medicoValido = _tipoUsuario != 'medico' || 
                       (_formKeyMedico.currentState?.verificar_formulario() ?? false);
+
+
+
 
   if (!usuarioValido || !medicoValido) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Por favor complete todos los campos requeridos')),
     );
+
+
+    _cerrarDialogo();
+
     return;
   }
 
   try {
     final controlador = Controlador_Mongo();
     await controlador.connect();
-
-    if (_tipoUsuario == 'medico' && _usuarioBase != null && _datosMedico != null) {
-      final medicoCompleto = Medico(
-        name: _usuarioBase!.name,
-        app_pat: _usuarioBase!.app_pat,
-        app_mat: _usuarioBase!.app_mat,
-        email: _usuarioBase!.email,
-        password: _usuarioBase!.password,
-        type_user: _usuarioBase!.type_user,
-        fecha_nacimiento: _usuarioBase!.fecha_nacimiento,
-        telefono: _usuarioBase!.telefono,
-        cedula: _datosMedico!.cedula,
-        listadoPacientes: _datosMedico!.listadoPacientes,
-      );
       
-      print('Médico creado: ${medicoCompleto.toJson()}');
-      await controlador.insertUsuario(medicoCompleto);
-    } 
-    else if (_usuarioBase != null) {
-      print('Paciente creado: ${_usuarioBase!.toJson()}');
-      await controlador.insertUsuario(_usuarioBase!);
-    }
+      int result = await controlador.findExistingUsuario(_usuarioBase.email);
+    if (result == 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ese correo ya está registrado')),
+        );
 
-    await controlador.disconnect();
+        
+      _cerrarDialogo();
+      return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Datos guardados correctamente')),
-    );
-    
-    if (mounted) {
-      Navigator.pop(context);
+
+    }else{
+          if (_tipoUsuario == 'medico' && _usuarioBase != null && _datosMedico != null) {
+          final medicoCompleto = Medico(
+            name: _usuarioBase!.name,
+            app_pat: _usuarioBase!.app_pat,
+            app_mat: _usuarioBase!.app_mat,
+            email: _usuarioBase!.email,
+            password: _usuarioBase!.password,
+            type_user: _usuarioBase!.type_user,
+            fecha_nacimiento: _usuarioBase!.fecha_nacimiento,
+            telefono: _usuarioBase!.telefono,
+            cedula: _datosMedico!.cedula,
+            listadoPacientes: _datosMedico!.listadoPacientes,
+          );
+          
+          print('Médico creado: ${medicoCompleto.toJson()}');
+          await controlador.insertUsuario(medicoCompleto);
+        } 
+        else if (_usuarioBase != null) {
+          print('Paciente creado: ${_usuarioBase!.toJson()}');
+          await controlador.insertUsuario(_usuarioBase!);
+        }
+
+        await controlador.disconnect();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Datos guardados correctamente')),
+        );
+
+
+        _cerrarDialogo();
     }
+      if (mounted) {
+        Navigator.pop(context);
+      }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Error al guardar: ${e.toString()}')),
     );
     print('Error: $e');
   }
+
+
 }
 
 bool verificar_codigo(){
