@@ -1,20 +1,23 @@
+import 'package:app_corazon/screens/Pantalla_inicio_medico.dart';
+import 'package:app_corazon/screens/Pantalla_inicio_paciente.dart';
 import 'package:flutter/material.dart';
 import '../widgets/Panel_usuario.dart';
 import '../widgets/Panel_medico.dart';
+import '../widgets/FormularioInicioSesionWidget.dart';
 import '../models/Usuario.dart';
 import '../models/Medico.dart';
 import '../screens/Pantalla_Menu_Principal.dart';
 
 import '../services/Controlador_Mongo.dart';
 
-class Pantalla_Crear_cuenta extends StatefulWidget {
-  const Pantalla_Crear_cuenta({super.key});
+class Pantalla_Iniciar_sesion extends StatefulWidget {
+  const Pantalla_Iniciar_sesion({super.key});
 
   @override
-  State<Pantalla_Crear_cuenta> createState() => _Pantalla_Crear_cuentaState();
+  State<Pantalla_Iniciar_sesion> createState() => _Pantalla_Iniciar_sesionState();
 }
 
-class _Pantalla_Crear_cuentaState extends State<Pantalla_Crear_cuenta> {
+class _Pantalla_Iniciar_sesionState extends State<Pantalla_Iniciar_sesion> {
   String _tipoUsuario = 'paciente';
   Usuario _usuarioBase= Usuario(
     name: '',
@@ -26,34 +29,112 @@ class _Pantalla_Crear_cuentaState extends State<Pantalla_Crear_cuenta> {
     fecha_nacimiento: DateTime.now(),
     telefono: 0,
   );
-  Medico? _datosMedico=null;
-  final GlobalKey<FormularioUsuarioWidgetState> _formKeyUsuario = GlobalKey();
-  final GlobalKey<FormularioMedicoWidgetState> _formKeyMedico = GlobalKey();
+
+  final GlobalKey<FormularioInicioSesionWidgetState> _formKeyUsuario = GlobalKey();
+  
   // Control para diálogo abierto
   bool _dialogoAbierto = false;
 
 
+  void buscarUsuario() async{
+
+    final usuarioValido = _formKeyUsuario.currentState?.verificar_formulario() ?? false;
+  
 
 
-  void _mostrarDialogo(String mensaje) {
-    if (_dialogoAbierto) return;
-    _dialogoAbierto = true;
+  if (!usuarioValido  ) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Por favor complete todos los campos requeridos')),
+    );
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        content: Row(
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(width: 16),
-            Expanded(child: Text(mensaje)),
-          ],
-        ),
-      ),
-    ).then((_) {
-      _dialogoAbierto = false;
-    });
+  
+    _cerrarDialogo();
+
+    return;
+  }
+
+
+        try {
+          _mostrarDialogo('Iniciando sesión...');
+            final controlador = Controlador_Mongo();
+            await controlador.connect();
+            print ("usuarioBase email ${_usuarioBase.email} en usuarioBBase type ${_usuarioBase.type_user}" ); 
+            
+            int result = await controlador.findExistingUsuario2(_usuarioBase.email,_usuarioBase.type_user);
+            if (result == 0) {  // No existe ese correo
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Ese correo no esta registrado')),
+                );
+              await controlador.disconnect();
+              _cerrarDialogo();
+              return;
+
+            }else{ // Existe ese correo
+
+              Usuario result1 = await controlador.findUsuario(_usuarioBase);
+              await controlador.disconnect();
+              _cerrarDialogo();
+
+
+              if ((_usuarioBase.password!=result1.password) && result1.password!='') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Esa contraseña no es correcta')),
+                );
+                return;
+
+              }else{
+
+                  if (result1.type_user == 'paciente') {
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Pantalla_Inicio_Paciente()),
+                          ); 
+                  } else if (result1.type_user == 'medico') {
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Pantalla_Inicio_Medico()),
+                          ); 
+                  } else {
+                    throw ArgumentError('Tipo de usuario no válido: ${result1.type_user}');
+                  }
+              }
+          }
+
+
+
+          
+
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al iniciar sesión: ${e.toString()}')),
+          );
+          print('Error: $e');
+        }
+}
+
+
+
+        void _mostrarDialogo(String mensaje) {
+          if (_dialogoAbierto) return;
+          _dialogoAbierto = true;
+
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => AlertDialog(
+              content: Row(
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(width: 16),
+                  Expanded(child: Text(mensaje)),
+                ],
+              ),
+            ),
+          ).then((_) {
+            _dialogoAbierto = false;
+          });
   }
 
   void _cerrarDialogo() {
@@ -63,96 +144,7 @@ class _Pantalla_Crear_cuentaState extends State<Pantalla_Crear_cuenta> {
     }
   }
 
-void _guardarDesdePantalla() async {
 
-  _mostrarDialogo('Guardando datos...');
-  final usuarioValido = _formKeyUsuario.currentState?.verificar_formulario() ?? false;
-  final medicoValido = _tipoUsuario != 'medico' || 
-                      (_formKeyMedico.currentState?.verificar_formulario() ?? false);
-
-
-
-
-  if (!usuarioValido || !medicoValido) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Por favor complete todos los campos requeridos')),
-    );
-
-
-    _cerrarDialogo();
-
-    return;
-  }
-
-  try {
-    final controlador = Controlador_Mongo();
-    await controlador.connect();
-      
-      int result = await controlador.findExistingUsuario(_usuarioBase.email);
-    if (result == 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ese correo ya está registrado')),
-        );
-
-        
-      _cerrarDialogo();
-      return;
-
-
-
-    }else{
-          if (_tipoUsuario == 'medico' && _usuarioBase != null && _datosMedico != null) {
-          final medicoCompleto = Medico(
-            name: _usuarioBase!.name,
-            app_pat: _usuarioBase!.app_pat,
-            app_mat: _usuarioBase!.app_mat,
-            email: _usuarioBase!.email,
-            password: _usuarioBase!.password,
-            type_user: _usuarioBase!.type_user,
-            fecha_nacimiento: _usuarioBase!.fecha_nacimiento,
-            telefono: _usuarioBase!.telefono,
-            cedula: _datosMedico!.cedula,
-            listadoPacientes: _datosMedico!.listadoPacientes,
-          );
-          
-          print('Médico creado: ${medicoCompleto.toJson()}');
-          await controlador.insertUsuario(medicoCompleto);
-        } 
-        else if (_usuarioBase != null) {
-          print('Paciente creado: ${_usuarioBase!.toJson()}');
-          await controlador.insertUsuario(_usuarioBase!);
-        }
-
-        await controlador.disconnect();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Datos guardados correctamente')),
-        );
-
-
-        _cerrarDialogo();
-    }
-      if (mounted) {
-        Navigator.pop(context);
-      }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al guardar: ${e.toString()}')),
-    );
-    print('Error: $e');
-  }
-
-
-}
-
-bool verificar_codigo(){
-  bool result = true;
-
-
-
-  return result;
-
-}
 
   @override
   Widget build(BuildContext context) {
@@ -189,15 +181,8 @@ bool verificar_codigo(){
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                const SizedBox(height: 30),
-                FormularioUsuarioWidget(
-                  key: _formKeyUsuario,
-                  tipoUsuario: _tipoUsuario,
-                  onGuardar: (usuario) {
-                     _usuarioBase = usuario ; // Cast explícito
-                  },
-                ), 
-                const SizedBox(height: 20),
+
+                // Selector de tipo de usuario
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -214,6 +199,7 @@ bool verificar_codigo(){
                       onSelected: (selected) {
                         setState(() {
                           _tipoUsuario = selected ? 'medico' : 'paciente';
+                          _usuarioBase.type_user = _tipoUsuario;
                         });
                       },
                       selectedColor: Colors.white,
@@ -242,6 +228,7 @@ bool verificar_codigo(){
                       onSelected: (selected) {
                         setState(() {
                           _tipoUsuario = selected ? 'paciente' : 'medico';
+                            _usuarioBase.type_user = _tipoUsuario;
                         });
                       },
                       selectedColor: Colors.white,
@@ -258,21 +245,45 @@ bool verificar_codigo(){
                     ),
                   ],
                 ),
-                if (_tipoUsuario == 'medico') ...[
-                  const SizedBox(height: 20),
-                  FormularioMedicoWidget(
-                    key: _formKeyMedico,
-                    tipoUsuario: _tipoUsuario,
-                    onGuardar: (medico) {
-                      _datosMedico = medico;
-                    },
-                  ),
-                ],
+
                 const SizedBox(height: 30),
+
+                //Formulario de inicio de sesión
+                FormularioInicioSesionWidget(
+                  key: _formKeyUsuario,
+                  tipoUsuario: _tipoUsuario,
+                  onBuscar: (email, password) {
+                     _usuarioBase.email = email;
+                     _usuarioBase.password = password;
+
+                  },
+                ), 
+                
+                const SizedBox(height: 30),
+
+                TextButton(
+                  onPressed: () {
+                    // Acción para "¿Olvidaste tu contraseña?"
+                  },
+                  child: Text(
+                    '¿Olvidaste tu contraseña?',
+                    style: TextStyle(
+                      color: Colors.blue[700],
+                      fontSize: 14,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+
+                
+                +
+                const SizedBox(height: 30),
+
+                //VBoton de inicio de sesión
                 SizedBox(
                   width: 250,
                   child: ElevatedButton(
-                    onPressed: _guardarDesdePantalla,
+                    onPressed: buscarUsuario,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       foregroundColor: Colors.white,
@@ -284,15 +295,13 @@ bool verificar_codigo(){
                       shadowColor: Colors.blue[800],
                     ),
                     child: const Text(
-                      'Guardar',
+                      'Iniciar sesión',
                       style: TextStyle(fontSize: 18),
                     ),
                   ),
                 ),
 
-
                 const SizedBox(height: 20),
-
 
               ],
             ),

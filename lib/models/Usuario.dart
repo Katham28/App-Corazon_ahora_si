@@ -45,6 +45,23 @@ set type_user(String value) => _type_user = value;
 set fecha_nacimiento(DateTime value) => _fecha_nacimiento = value;
 set telefono(int value) => _telefono = value;
 
+@override
+String toString() {
+  return 'Usuario('
+         'name: $_name, '
+         'app_pat: $_app_pat, '
+         'app_mat: $_app_mat, '
+         'email: $_email, '
+         'password: $_password, '
+         'type_user: $_type_user, '
+         'fecha_nacimiento: $_fecha_nacimiento, '
+         'telefono: $_telefono'
+         ')';
+}
+
+
+
+
   /* ╭───── JSON ─────╮ */
   factory Usuario.fromJson(Map<String, dynamic> j) => Usuario(
     name: j['n']?.toString() ?? '',          

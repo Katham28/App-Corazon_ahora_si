@@ -31,6 +31,33 @@ class Controlador_Mongo {
     return await mongoService.insertOne(collectionName, document);
   }
 
+  Future<int> findExistingUsuario2(String correo,String type) async {
+    int band=0;
+    print("buscando si existe: $correo en $type");
+    if (type == 'paciente') {
+        final resultadoPaciente = await mongoService.find('Paciente', {
+        'email': correo,
+        });
+
+      if (resultadoPaciente.isNotEmpty) {
+        band=1;
+    }}
+    else if (type == 'medico') {
+      final resultadoMedico= await mongoService.find('Medico', {
+        'email': correo,
+      });
+
+      if ( resultadoMedico.isNotEmpty) {
+        band=1;
+        }
+    }
+
+      
+
+    return await band;
+  }
+
+
   Future<int> findExistingUsuario(String correo) async {
     int band=0;
     print("buscando si existe: $correo");
@@ -45,7 +72,7 @@ class Controlador_Mongo {
 
 
       if (resultadoPaciente.isNotEmpty || resultadoMedico.isNotEmpty) {
-        print('❌ Usuario preexistente');
+       // print('❌ Usuario preexistente');
         band=1;
       } else   {
         band=0; 
@@ -54,33 +81,40 @@ class Controlador_Mongo {
     return await band;
   }
 
-  Future<Usuario> findUsuario(Usuario usuario) async {
-      Paciente? paciente;
-      Medico? medico;
+Future<Usuario> findUsuario(Usuario user) async {
+  Paciente? paciente;
+  Medico? medico;
 
-      final resultadoPaciente = await mongoService.find('Paciente', {
-        'usuario': 'usuario.email',
-      });
-
-      final resultadoMedico= await mongoService.find('Medico', {
-        'usuario': 'usuario.email',
-      });
-
-      if (resultadoPaciente.isNotEmpty ) {
-        print('✅ Paciente encontrado: ${resultadoPaciente.first}');
-        return await  usuarioFromMongoDoc(resultadoPaciente.first);
-      
-      } else if (resultadoMedico.isNotEmpty) {
-        print('✅ Médico encontrado: ${resultadoMedico.first}');
-        return await  usuarioFromMongoDoc(resultadoMedico.first);
-
-      } 
-
-
-    print('❌ Usuario no encontrado');
-    return await  usuarioFromMongoDoc(resultadoPaciente.first);
-
+  if (user.type_user == 'paciente') {
+    final resultadoPaciente = await mongoService.find('Paciente', {
+      'email': user.email,
+    });
+    if (resultadoPaciente.isNotEmpty) {
+      print('✅ Paciente encontrado: ${resultadoPaciente.first}');
+      return await usuarioFromMongoDoc(resultadoPaciente.first);
+    }
+  } else if (user.type_user == 'medico') {
+    final resultadoMedico = await mongoService.find('Medico', {
+      'email': user.email,
+    });
+    if (resultadoMedico.isNotEmpty) {
+      print('✅ Médico encontrado: ${resultadoMedico.first}');
+      return await usuarioFromMongoDoc(resultadoMedico.first);
+    }
+  } else {
+    throw ArgumentError('Tipo de usuario no válido: ${user.type_user}');
   }
+
+  // ❌ Usuario no encontrado
+  print('❌ Usuario no encontrado');
+
+  // Usamos los setters para limpiar campos
+  user.email = '';
+  user.password = '';
+
+  return await user;
+}
+
 
 Usuario usuarioFromMongoDoc(Map<String, dynamic> doc) {
   final hasCedula = doc.containsKey('c') || doc.containsKey('cedula');

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/Pantalla_Crear_cuenta.dart';
+import '../screens/Pantalla_Iniciar_sesion.dart';
 import '../services/mongo.dart';
 
 class MenuPrincipal extends StatelessWidget {
@@ -91,10 +92,10 @@ class MenuPrincipal extends StatelessWidget {
                   width: 250,
                   child: ElevatedButton(
                     onPressed: () {
-                      /* Navigator.push(
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => PIniciarSesion()),
-                      ); */
+                        MaterialPageRoute(builder: (context) => Pantalla_Iniciar_sesion()),
+                      ); 
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
@@ -139,30 +140,8 @@ class MenuPrincipal extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 40),
-                TextButton(
-                  onPressed: () {
-                    // Acción para "¿Olvidaste tu contraseña?"
-                  },
-                  child: Text(
-                    '¿Olvidaste tu contraseña?',
-                    style: TextStyle(
-                      color: Colors.blue[700],
-                      fontSize: 14,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => _testMongoConnection(context),
-                  child: Text(
-                    'PRUEBA MONGO',
-                    style: TextStyle(
-                      color: Colors.blue[700],
-                      fontSize: 14,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
+                
+               
               ],
             ),
           ),
