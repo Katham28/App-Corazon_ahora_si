@@ -4,18 +4,45 @@ import '../widgets/Panel_medico.dart';
 import '../models/Usuario.dart';
 import '../models/Medico.dart';
 import '../screens/Pantalla_Menu_Principal.dart';
-
 import '../services/Controlador_Mongo.dart';
+import '../widgets/Editar_usuario.dart';
 
 class Pantalla_Inicio_Medico extends StatefulWidget {
-  const Pantalla_Inicio_Medico({super.key});
+  final Usuario user; 
+
+  const Pantalla_Inicio_Medico({
+    super.key,
+    required this.user, 
+  });
 
   @override
   State<Pantalla_Inicio_Medico> createState() => _Pantalla_Inicio_Medico_State();
 }
 
 class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
-  
+  int _indiceSeleccionado = 0;
+  late List<Widget> _pantallas;
+
+  @override
+  void initState() {
+    super.initState();
+    _pantallas = [
+      const Center(child: Text('🏠 Inicio', style: TextStyle(fontSize: 25))),
+      const Center(child: Text('📄 Perfil', style: TextStyle(fontSize: 25))),
+      Editar_usuario_Widget(
+        usuario: widget.user,
+        onGuardar: (usuarioEditado) {
+          print("Usuario editado: ${usuarioEditado.name}");
+        },
+      ),
+    ];
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _indiceSeleccionado = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,32 +66,24 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
         ),
         toolbarHeight: 70,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blue[50]!, Colors.white],
+      body: _pantallas[_indiceSeleccionado],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _indiceSeleccionado,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_active),
+            label: "Notificaciones",
           ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                const SizedBox(height: 30),
-                
-                
-
-
-
-                
-                
-
-              ],
-            ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.elderly),
+            label: "Listado pacientes",
           ),
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: "Cuenta",
+          ),
+        ],
       ),
     );
   }

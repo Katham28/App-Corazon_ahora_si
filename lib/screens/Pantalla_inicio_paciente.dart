@@ -6,6 +6,7 @@ import '../models/Medico.dart';
 import '../screens/Pantalla_Menu_Principal.dart';
 import '../services/Controlador_Mongo.dart';
 
+
 class Pantalla_Inicio_Paciente extends StatefulWidget {
   const Pantalla_Inicio_Paciente({super.key});
 

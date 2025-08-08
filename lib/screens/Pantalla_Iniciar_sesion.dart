@@ -94,7 +94,7 @@ class _Pantalla_Iniciar_sesionState extends State<Pantalla_Iniciar_sesion> {
 
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => Pantalla_Inicio_Medico()),
+                            MaterialPageRoute(builder: (context) => Pantalla_Inicio_Medico(user: _usuarioBase  )),
                           ); 
                   } else {
                     throw ArgumentError('Tipo de usuario no válido: ${result1.type_user}');
@@ -275,10 +275,10 @@ class _Pantalla_Iniciar_sesionState extends State<Pantalla_Iniciar_sesion> {
                   ),
                 ),
 
-                
-                +
-                const SizedBox(height: 30),
 
+                
+                const SizedBox(height: 30),
+  
                 //VBoton de inicio de sesión
                 SizedBox(
                   width: 250,
