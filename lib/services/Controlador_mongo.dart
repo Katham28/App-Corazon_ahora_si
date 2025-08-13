@@ -20,6 +20,23 @@ class Controlador_Mongo {
     return await mongoService.insertOne(collectionName, document);
   }
 
+
+
+
+Future<WriteResult> updateUsuario(Usuario usuario) async {
+  if (usuario == null) {
+    throw ArgumentError('El usuario no puede ser nulo');
+  }
+
+
+  final collectionName = usuario.type_user == 'medico' ? 'Medico' : 'Paciente';
+  final filter = {'email': usuario.email}; // criterio de búsqueda
+  final document = _createUserDocument2(usuario);
+
+  return await mongoService.updateOne(collectionName, filter, document);
+}
+
+
   Future<WriteResult> insertUsuario(Usuario usuario) async {
     if (usuario == null) {
       throw ArgumentError('El usuario no puede ser nulo');
@@ -188,6 +205,23 @@ Usuario usuarioFromMongoDoc(Map<String, dynamic> doc) {
   }
 }
 
+  Map<String, dynamic> _createUserDocument2(Usuario usuario) {
+    final baseDocument = {
+      'name': usuario.name,
+      'app_pat': usuario.app_pat,
+      'app_mat': usuario.app_mat,
+      'fecha_nacimiento': usuario.fecha_nacimiento.toIso8601String(),
+      'email': usuario.email,
+      'password': usuario.password,
+      'type_user': usuario.type_user,
+      'telefono': usuario.telefono,
+    };
+
+
+
+    return baseDocument;
+  }
+
 
   Map<String, dynamic> _createUserDocument(Usuario usuario) {
     final baseDocument = {
@@ -201,7 +235,7 @@ Usuario usuarioFromMongoDoc(Map<String, dynamic> doc) {
       'telefono': usuario.telefono,
     };
 
-    if (usuario is Medico) {
+    if (usuario is Medico ) {
       baseDocument.addAll({
         'cedula': (usuario as Medico).cedula,
         'listadoPacientes': [],

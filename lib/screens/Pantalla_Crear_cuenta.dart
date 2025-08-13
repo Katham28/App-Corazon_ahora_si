@@ -284,7 +284,7 @@ bool verificar_codigo(){
                       shadowColor: Colors.blue[800],
                     ),
                     child: const Text(
-                      'Guardar',
+                      'Crear cuenta',
                       style: TextStyle(fontSize: 18),
                     ),
                   ),

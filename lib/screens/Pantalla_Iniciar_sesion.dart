@@ -91,10 +91,11 @@ class _Pantalla_Iniciar_sesionState extends State<Pantalla_Iniciar_sesion> {
                             MaterialPageRoute(builder: (context) => Pantalla_Inicio_Paciente()),
                           ); 
                   } else if (result1.type_user == 'medico') {
+                    print("Navegando a Pantalla_Inicio_Medico: ${result1}");
 
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => Pantalla_Inicio_Medico(user: _usuarioBase  )),
+                            MaterialPageRoute(builder: (context) => Pantalla_Inicio_Medico(user: result1  )),
                           ); 
                   } else {
                     throw ArgumentError('Tipo de usuario no válido: ${result1.type_user}');
@@ -151,7 +152,7 @@ class _Pantalla_Iniciar_sesionState extends State<Pantalla_Iniciar_sesion> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Crear cuenta',
+          'Iniciar Sesión',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,

@@ -8,11 +8,11 @@ import '../services/Controlador_Mongo.dart';
 import '../widgets/Editar_usuario.dart';
 
 class Pantalla_Inicio_Medico extends StatefulWidget {
-  final Usuario user; 
+  Usuario user; // ya no es final
 
-  const Pantalla_Inicio_Medico({
+  Pantalla_Inicio_Medico({
     super.key,
-    required this.user, 
+    required this.user,
   });
 
   @override
@@ -22,6 +22,36 @@ class Pantalla_Inicio_Medico extends StatefulWidget {
 class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
   int _indiceSeleccionado = 0;
   late List<Widget> _pantallas;
+    // Control para diálogo abierto
+  bool _dialogoAbierto = false;
+
+  void _mostrarDialogo(String mensaje) {
+          if (_dialogoAbierto) return;
+          _dialogoAbierto = true;
+
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => AlertDialog(
+              content: Row(
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(width: 16),
+                  Expanded(child: Text(mensaje)),
+                ],
+              ),
+            ),
+          ).then((_) {
+            _dialogoAbierto = false;
+          });
+  }
+
+  void _cerrarDialogo() {
+    if (_dialogoAbierto && mounted && Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+      _dialogoAbierto = false;
+    }
+  }
 
   @override
   void initState() {
@@ -33,6 +63,7 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
         usuario: widget.user,
         onGuardar: (usuarioEditado) {
           print("Usuario editado: ${usuarioEditado.name}");
+          actualizar_info(usuarioEditado);
         },
       ),
     ];
@@ -43,6 +74,69 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
       _indiceSeleccionado = index;
     });
   }
+
+  void actualizar_info(Usuario newuser) async {
+    _mostrarDialogo('Actualizando...');
+
+  if (newuser.email == widget.user.email && newuser.name == widget.user.name &&
+      newuser.app_pat == widget.user.app_pat && newuser.app_mat == widget.user.app_mat &&
+      newuser.fecha_nacimiento == widget.user.fecha_nacimiento && newuser.telefono == widget.user.telefono
+      && newuser.password == widget.user.password) {
+      _cerrarDialogo();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Realiza un cambio para actualizar')),
+      );
+      return;
+  }else{
+  
+
+      try {
+        final controlador = Controlador_Mongo();
+        await controlador.connect();
+
+        int result = await controlador.findExistingUsuario(newuser.email);
+        if (result == 1 && newuser.email != widget.user.email) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ese correo ya está registrado')),
+          );
+          _cerrarDialogo();
+          return;
+        } else {
+          if (newuser.type_user == 'medico') {
+            print('Médico MODIFICADO: ${newuser.toJson()}');
+            await controlador.updateUsuario(newuser);
+          } else {
+            print('Paciente MODIFICADO: ${newuser.toJson()}');
+            await controlador.updateUsuario(newuser);
+          }
+
+          await controlador.disconnect();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Datos guardados correctamente')),
+          );
+
+
+          widget.user= newuser;
+          _cerrarDialogo();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(' Datos actualizados correctamente')),
+        );
+
+      
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: ${e.toString()}')),
+        );
+        print('Error: $e');
+      }
+  }
+}
+
+
+
 
   @override
   Widget build(BuildContext context) {

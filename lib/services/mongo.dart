@@ -95,6 +95,29 @@ Future<void> connect() async {
 }
 
 
+
+
+Future<WriteResult> updateOne(
+    String collectionName, Map<String, dynamic> filter, Map<String, dynamic> update) async {
+  _checkConnection();
+  final collection = _db.collection(collectionName);
+
+  // Construir el modificador aplicando set() por cada campo
+  var m = modify;
+  update.forEach((key, value) {
+    m = m.set(key, value);
+  });
+
+  return await collection.updateOne(
+    where.eq('email', filter['email']),
+    m,
+  );
+}
+
+
+
+
+
   Future<List<Map<String, dynamic>>> find(
       String collectionName, [Map<String, dynamic>? filter]) async {
     _checkConnection();
