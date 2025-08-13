@@ -88,7 +88,7 @@ class _Pantalla_Iniciar_sesionState extends State<Pantalla_Iniciar_sesion> {
 
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => Pantalla_Inicio_Paciente()),
+                            MaterialPageRoute(builder: (context) => Pantalla_Inicio_Paciente(user: result1)),
                           ); 
                   } else if (result1.type_user == 'medico') {
                     print("Navegando a Pantalla_Inicio_Medico: ${result1}");
