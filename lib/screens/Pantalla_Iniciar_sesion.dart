@@ -7,6 +7,7 @@ import '../widgets/FormularioInicioSesionWidget.dart';
 import '../models/Usuario.dart';
 import '../models/Medico.dart';
 import '../screens/Pantalla_Menu_Principal.dart';
+import '../screens/Pantalla_Recuperar_Cuenta.dart';
 
 import '../services/Controlador_Mongo.dart';
 
@@ -43,11 +44,7 @@ class _Pantalla_Iniciar_sesionState extends State<Pantalla_Iniciar_sesion> {
 
 
   if (!usuarioValido  ) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Por favor complete todos los campos requeridos')),
-    );
 
-  
     _cerrarDialogo();
 
     return;
@@ -74,6 +71,7 @@ class _Pantalla_Iniciar_sesionState extends State<Pantalla_Iniciar_sesion> {
               Usuario result1 = await controlador.findUsuario(_usuarioBase);
               await controlador.disconnect();
               _cerrarDialogo();
+
 
 
               if ((_usuarioBase.password!=result1.password) && result1.password!='') {
@@ -264,6 +262,10 @@ class _Pantalla_Iniciar_sesionState extends State<Pantalla_Iniciar_sesion> {
 
                 TextButton(
                   onPressed: () {
+                    Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Pantalla_Recuperar_cuenta()),
+                          );
                     // Acción para "¿Olvidaste tu contraseña?"
                   },
                   child: Text(

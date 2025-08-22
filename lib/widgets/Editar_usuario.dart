@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/Usuario.dart';
+import '../utils/recursos_Campos.dart';
 
 class Editar_usuario_Widget extends StatefulWidget {
   final Function(Usuario) onGuardar;
@@ -102,7 +103,8 @@ class Editar_usuario_Widget_State extends State<Editar_usuario_Widget> {
     if (_formKey.currentState!.validate() &&
         _fechaNacimiento != null &&
         widget.usuario.type_user.isNotEmpty &&
-        _passwordCtrl.text == _passwordCtrl2.text) {
+        _passwordCtrl.text == _passwordCtrl2.text
+            && _emailCtrl.text.contains('@') == true ){
       Usuario nuevo = Usuario(
         name: _nombreCtrl.text,
         app_pat: _appPatCtrl.text,
@@ -120,7 +122,12 @@ class Editar_usuario_Widget_State extends State<Editar_usuario_Widget> {
         const SnackBar(content: Text('Las contraseñas no coinciden.')),
       );
       
-    } else {
+    }  else if (_emailCtrl.text.contains('@') == false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('El correo electrónico no es válido.')),
+      );
+    }
+    else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor completa todos los campos.')),
       );
@@ -148,13 +155,13 @@ class Editar_usuario_Widget_State extends State<Editar_usuario_Widget> {
                 titulo('Datos personales', Icon(Icons.badge, color: Colors.blueAccent)),
                 campoTexto('Nombre', _nombreCtrl, Icon(Icons.person)),
                 campoTexto('Apellido paterno', _appPatCtrl, Icon(Icons.person)),
-                campoTexto('Apellido materno', _appMatCtrl, Icon(Icons.person)),
-                campoTexto('Teléfono', _telefonoCtrl, Icon(Icons.phone),
+                campoMaterno('Apellido materno', _appMatCtrl, Icon(Icons.person)),
+                campotelefonico('Teléfono', _telefonoCtrl, Icon(Icons.phone),
                     keyboardType: TextInputType.phone),
                 campoFechaNacimiento(),
                 titulo('Datos de la cuenta',
                     Icon(Icons.account_circle, color: Colors.blueAccent)),
-                campoTexto('Correo electrónico', _emailCtrl,
+                campocorreo('Correo electrónico', _emailCtrl,
                     Icon(Icons.alternate_email),
                     keyboardType: TextInputType.emailAddress),
                 campoTexto('Contraseña', _passwordCtrl, Icon(Icons.password),
@@ -192,42 +199,3 @@ class Editar_usuario_Widget_State extends State<Editar_usuario_Widget> {
   }
 }
 
-Widget campoTexto(String label, TextEditingController controller, Icon icon,
-    {bool isPassword = false, TextInputType keyboardType = TextInputType.text}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: TextFormField(
-      controller: controller,
-      obscureText: isPassword,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        suffixIcon: icon,
-      ),
-      validator: (value) =>
-          value == null || value.isEmpty ? 'Este campo es obligatorio' : null,
-    ),
-  );
-}
-
-Widget titulo(String text, Icon icon) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        icon,
-        const SizedBox(width: 8),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.blueAccent,
-          ),
-        ),
-      ],
-    ),
-  );
-}

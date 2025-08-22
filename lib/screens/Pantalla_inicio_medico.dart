@@ -104,7 +104,12 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
         } else {
           if (newuser.type_user == 'medico') {
             print('Médico MODIFICADO: ${newuser.toJson()}');
-            await controlador.updateUsuario(newuser);
+            if(newuser.email !=widget.user.email){
+              await controlador.updateUsuario(newuser, oldcorreo: widget.user.email);}
+            else{
+                await controlador.updateUsuario(newuser);
+              }
+
           } else {
             print('Paciente MODIFICADO: ${newuser.toJson()}');
             await controlador.updateUsuario(newuser);

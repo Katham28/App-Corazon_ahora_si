@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/Usuario.dart';
 import '../models/Medico.dart';
+import '../utils/recursos_Campos.dart';
+import '../services/Controlador_Mongo.dart';
 
 class FormularioMedicoWidget extends StatefulWidget {
   final Function(Medico) onGuardar;
@@ -22,10 +24,23 @@ class FormularioMedicoWidgetState extends State<FormularioMedicoWidget> {
   final numcedCtrl = TextEditingController();
   final _verifiCtrl = TextEditingController();
 
+
+  Future <bool> verificar_codigo() async{
+    final controlador = Controlador_Mongo();
+    await controlador.connect();
+        
+       
+    bool band = await controlador.findClave_confirmacion(_verifiCtrl.text);
+    
+     await controlador.disconnect();
+  return band;
+
+  }
+
   bool verificar_formulario() {
       
 
-    if (_formKey.currentState!.validate() && widget.tipoUsuario.isNotEmpty) {
+    if (_formKey.currentState!.validate() && widget.tipoUsuario.isNotEmpty ) {
       final medico = Medico(
         name: '',
         app_pat: '',
@@ -51,51 +66,14 @@ class FormularioMedicoWidgetState extends State<FormularioMedicoWidget> {
       key: _formKey,
       child: Column(
         children: [
-          _titulo('Datos profesionales', const Icon(Icons.badge, color: Colors.blueAccent)),
-          _campoTexto('Número de cédula', numcedCtrl, const Icon(Icons.numbers), keyboardType: TextInputType.number),
-          _titulo('Verifica la cuenta médica', const Icon(Icons.badge, color: Colors.blueAccent)),
-          _campoTexto('Código de activación', _verifiCtrl, const Icon(Icons.numbers), keyboardType: TextInputType.number),
+          titulo('Datos profesionales', const Icon(Icons.badge, color: Colors.blueAccent)),
+          camponumerico('Número de cédula', numcedCtrl, const Icon(Icons.numbers), keyboardType: TextInputType.number),
+          titulo('Verifica la cuenta médica', const Icon(Icons.badge, color: Colors.blueAccent)),
+          camponumerico('Código de activación', _verifiCtrl, const Icon(Icons.numbers), keyboardType: TextInputType.number),
         ],
       ),
     );
   }
 
-  Widget _campoTexto(String label, TextEditingController controller, Icon icon,
-      {bool isPassword = false, TextInputType keyboardType = TextInputType.text}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: TextFormField(
-        controller: controller,
-        obscureText: isPassword,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          suffixIcon: icon,
-        ),
-        validator: (value) => value == null || value.isEmpty ? 'Este campo es obligatorio' : null,
-      ),
-    );
-  }
 
-  Widget _titulo(String text, Icon icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          icon,
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.blueAccent,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

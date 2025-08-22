@@ -26,11 +26,16 @@ class FormularioInicioSesionWidgetState extends State<FormularioInicioSesionWidg
 
   bool verificar_formulario() {
     bool flag = false;
-    if (_formKey.currentState!.validate() && widget.tipoUsuario.isNotEmpty)
+    if (_formKey.currentState!.validate() && widget.tipoUsuario.isNotEmpty && _emailCtrl.text.contains('@') )
     {
       widget.onBuscar(_emailCtrl.text, _passwordCtrl.text);
       flag = true;
+    }  else if (_emailCtrl.text.contains('@') == false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('El correo electrónico no es válido.')),
+      );
     }
+
     else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor completa todos los campos.')),

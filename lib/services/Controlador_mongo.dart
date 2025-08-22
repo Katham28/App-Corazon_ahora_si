@@ -23,16 +23,16 @@ class Controlador_Mongo {
 
 
 
-Future<WriteResult> updateUsuario(Usuario usuario) async {
+Future<WriteResult> updateUsuario(Usuario usuario, {String? oldcorreo}) async {
   if (usuario == null) {
     throw ArgumentError('El usuario no puede ser nulo');
   }
 
 
   final collectionName = usuario.type_user == 'medico' ? 'Medico' : 'Paciente';
-  final filter = {'email': usuario.email}; // criterio de búsqueda
+  final filter = oldcorreo==null ? {'email': usuario.email} : {'email': oldcorreo}; 
   final document = _createUserDocument2(usuario);
-
+  print ("actualizando usuario: ${usuario.toJson()} en $collectionName");
   return await mongoService.updateOne(collectionName, filter, document);
 }
 
@@ -77,7 +77,7 @@ Future<WriteResult> updateUsuario(Usuario usuario) async {
 
   Future<int> findExistingUsuario(String correo) async {
     int band=0;
-    print("buscando si existe: $correo");
+
    final resultadoPaciente = await mongoService.find('Paciente', {
         'email': correo,
       });
@@ -98,6 +98,32 @@ Future<WriteResult> updateUsuario(Usuario usuario) async {
     return await band;
   }
 
+Future<bool> findClave_confirmacion(String clave) async {
+  bool band=false;
+  // Busca documentos donde 'clavesMedico' contenga el valor de 'clave'
+      print("buscando si existe: $clave");
+  final resultadoPaciente = await mongoService.find('Claves', {
+    'clavesMedico': { '\$in': [clave] }  // convertir clave a string
+  });
+
+  print ("Resultado clave: $resultadoPaciente");
+
+  if (resultadoPaciente != null && resultadoPaciente.isNotEmpty){
+    print ("coincidencia de claves");
+    band=true;
+  }
+  else{
+    print ("NO coincidencia de claves");
+    band=false;
+
+  }
+
+
+  return band;
+}
+
+
+
 Future<Usuario> findUsuario(Usuario user) async {
   Paciente? paciente;
   Medico? medico;
@@ -108,6 +134,7 @@ Future<Usuario> findUsuario(Usuario user) async {
     });
     if (resultadoPaciente.isNotEmpty) {
       print('✅ Paciente encontrado: ${resultadoPaciente.first}');
+
       return await usuarioFromMongoDoc(resultadoPaciente.first);
     }
   } else if (user.type_user == 'medico') {
@@ -157,7 +184,7 @@ Usuario usuarioFromMongoDoc(Map<String, dynamic> doc) {
           password: doc['password']?.toString() ?? '',
           type_user: doc['type_user']?.toString() ?? '',
           fecha_nacimiento: DateTime.tryParse(doc['fecha_nacimiento']?.toString() ?? '') ?? DateTime(0),
-          telefono: (doc['telefono'] as num?)?.toInt() ?? 0,
+          telefono: (doc['telefono'] )?.toInt() ?? 0,
           cedula: (doc['c'] ?? doc['cedula']) as int,
           listadoPacientes: pacientes,
         );
@@ -191,6 +218,7 @@ Usuario usuarioFromMongoDoc(Map<String, dynamic> doc) {
           dateTime: DateTime.tryParse(p['dateTime']?.toString() ?? '') ?? DateTime(0),
         )).toList();
 
+
     return Paciente(
       name: doc['name']?.toString() ?? '',
       app_pat: doc['app_pat']?.toString() ?? '',
@@ -199,7 +227,7 @@ Usuario usuarioFromMongoDoc(Map<String, dynamic> doc) {
       password: doc['password']?.toString() ?? '',
       type_user: doc['type_user']?.toString() ?? '',
       fecha_nacimiento: DateTime.tryParse(doc['fecha_nacimiento']?.toString() ?? '') ?? DateTime(0),
-      telefono: (doc['telefono'] as num?)?.toInt() ?? 0,
+      telefono: doc['telefono'] ?.toInt() ?? 0,
 
     );
   }

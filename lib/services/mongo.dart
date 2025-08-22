@@ -57,8 +57,7 @@ Future<void> connect() async {
   }
 
   // InsertOne retorna WriteResult
-  Future<WriteResult> insertOne(
-      String collectionName, Map<String, dynamic> document) async {
+  Future<WriteResult> insertOne(String collectionName, Map<String, dynamic> document) async {
     _checkConnection();
     try {
       final collection = _db.collection(collectionName);

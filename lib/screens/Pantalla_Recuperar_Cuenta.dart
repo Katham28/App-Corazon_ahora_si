@@ -1,34 +1,22 @@
 import 'package:flutter/material.dart';
-import '../widgets/Panel_usuario.dart';
-import '../widgets/Panel_medico.dart';
 import '../models/Usuario.dart';
 import '../models/Medico.dart';
 import '../screens/Pantalla_Menu_Principal.dart';
+import '../utils/recursos_Campos.dart';
 
 import '../services/Controlador_Mongo.dart';
 
-class Pantalla_Crear_cuenta extends StatefulWidget {
-  const Pantalla_Crear_cuenta({super.key});
+class Pantalla_Recuperar_cuenta extends StatefulWidget {
+  const Pantalla_Recuperar_cuenta({super.key});
 
   @override
-  State<Pantalla_Crear_cuenta> createState() => _Pantalla_Crear_cuentaState();
+  State<Pantalla_Recuperar_cuenta> createState() => Pantalla_Recuperar_cuentaState();
 }
 
-class _Pantalla_Crear_cuentaState extends State<Pantalla_Crear_cuenta> {
+class Pantalla_Recuperar_cuentaState extends State<Pantalla_Recuperar_cuenta> {
   String _tipoUsuario = 'paciente';
-  Usuario _usuarioBase= Usuario(
-    name: '',
-    app_pat: '',
-    app_mat: '',
-    email: '',
-    password: '',
-    type_user: 'paciente',
-    fecha_nacimiento: DateTime.now(),
-    telefono: 0,
-  );
-  Medico? _datosMedico=null;
-  final GlobalKey<FormularioUsuarioWidgetState> _formKeyUsuario = GlobalKey();
-  final GlobalKey<FormularioMedicoWidgetState> _formKeyMedico = GlobalKey();
+
+
   // Control para diálogo abierto
   bool _dialogoAbierto = false;
 
@@ -63,88 +51,21 @@ class _Pantalla_Crear_cuentaState extends State<Pantalla_Crear_cuenta> {
     }
   }
 
-void _guardarDesdePantalla() async {
-
-  _mostrarDialogo('Guardando datos...');
-  final usuarioValido = _formKeyUsuario.currentState?.verificar_formulario() ?? false;
-  final medicoValido = _tipoUsuario != 'medico' || 
-                      (_formKeyMedico.currentState?.verificar_formulario() ?? false);
-
-  final resultadoclave= await _formKeyMedico.currentState?.verificar_codigo() ;
-
-
-  if (!usuarioValido || !medicoValido || resultadoclave==false) {
-      if (resultadoclave==false){
-              ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Esa clave de verificación no es válida')),
-        );
-
-  }
-
-
-    _cerrarDialogo();
-
-    return;
-  }
-
-  try {
+  Future <bool> verificar_codigo() async{
     final controlador = Controlador_Mongo();
     await controlador.connect();
-      
-      int result = await controlador.findExistingUsuario(_usuarioBase.email);
-    if (result == 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ese correo ya está registrado')),
-        );
-
         
-      _cerrarDialogo();
-      return;
+       
+    bool band = await controlador.findClave_confirmacion("");
+    
+     await controlador.disconnect();
+  return band;
 
-
-
-    }else{
-          if (_tipoUsuario == 'medico' && _usuarioBase != null && _datosMedico != null ) {
-          final medicoCompleto = Medico(
-            name: _usuarioBase!.name,
-            app_pat: _usuarioBase!.app_pat,
-            app_mat: _usuarioBase!.app_mat,
-            email: _usuarioBase!.email,
-            password: _usuarioBase!.password,
-            type_user: _usuarioBase!.type_user,
-            fecha_nacimiento: _usuarioBase!.fecha_nacimiento,
-            telefono: _usuarioBase!.telefono,
-            cedula: _datosMedico!.cedula,
-            listadoPacientes: _datosMedico!.listadoPacientes,
-          );
-          
-          print('Médico creado: ${medicoCompleto.toJson()}');
-          await controlador.insertUsuario(medicoCompleto);
-        } 
-        else if (_usuarioBase != null) {
-          print('Paciente creado: ${_usuarioBase!.toJson()}');
-          await controlador.insertUsuario(_usuarioBase!);
-        }
-
-        await controlador.disconnect();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Datos guardados correctamente')),
-        );
-
-
-        _cerrarDialogo();
-    }
-      if (mounted) {
-        Navigator.pop(context);
-      }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al guardar: ${e.toString()}')),
-    );
-    print('Error: $e');
   }
 
+void _cambiar_contrasenia() async {
+
+  
 
 }
 
@@ -155,7 +76,7 @@ void _guardarDesdePantalla() async {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Crear cuenta',
+          'Recuperar Cuenta',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -186,14 +107,7 @@ void _guardarDesdePantalla() async {
             child: Column(
               children: [
                 const SizedBox(height: 30),
-                FormularioUsuarioWidget(
-                  key: _formKeyUsuario,
-                  tipoUsuario: _tipoUsuario,
-                  onGuardar: (usuario) {
-                     _usuarioBase = usuario ; // Cast explícito
-                  },
-                ), 
-                const SizedBox(height: 20),
+                
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -254,21 +168,20 @@ void _guardarDesdePantalla() async {
                     ),
                   ],
                 ),
-                if (_tipoUsuario == 'medico') ...[
-                  const SizedBox(height: 20),
-                  FormularioMedicoWidget(
-                    key: _formKeyMedico,
-                    tipoUsuario: _tipoUsuario,
-                    onGuardar: (medico) {
-                      _datosMedico = medico;
-                    },
-                  ),
-                ],
+
+
+
+
+
+
+
+
+
                 const SizedBox(height: 30),
                 SizedBox(
                   width: 250,
                   child: ElevatedButton(
-                    onPressed: _guardarDesdePantalla,
+                    onPressed: _cambiar_contrasenia,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       foregroundColor: Colors.white,
@@ -280,7 +193,7 @@ void _guardarDesdePantalla() async {
                       shadowColor: Colors.blue[800],
                     ),
                     child: const Text(
-                      'Crear cuenta',
+                      'Recuperar Cuenta',
                       style: TextStyle(fontSize: 18),
                     ),
                   ),

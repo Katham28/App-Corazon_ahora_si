@@ -16,10 +16,10 @@ class Pantalla_Inicio_Paciente extends StatefulWidget {
   });
 
   @override
-  State<Pantalla_Inicio_Paciente> createState() => Pantalla_Inicio_Paciente_State();
+  State<Pantalla_Inicio_Paciente> createState() => _Pantalla_Inicio_Paciente_State();
 }
 
-class Pantalla_Inicio_Paciente_State extends State<Pantalla_Inicio_Paciente> {
+class _Pantalla_Inicio_Paciente_State extends State<Pantalla_Inicio_Paciente> {
   int _indiceSeleccionado = 0;
   late List<Widget> _pantallas;
     // Control para diálogo abierto
@@ -93,6 +93,7 @@ class Pantalla_Inicio_Paciente_State extends State<Pantalla_Inicio_Paciente> {
       try {
         final controlador = Controlador_Mongo();
         await controlador.connect();
+      
 
         int result = await controlador.findExistingUsuario(newuser.email);
         if (result == 1 && newuser.email != widget.user.email) {
@@ -107,7 +108,14 @@ class Pantalla_Inicio_Paciente_State extends State<Pantalla_Inicio_Paciente> {
             await controlador.updateUsuario(newuser);
           } else {
             print('Paciente MODIFICADO: ${newuser.toJson()}');
-            await controlador.updateUsuario(newuser);
+
+            if(newuser.email !=widget.user.email){
+              // Si el correo ha cambiado, actualizamos el usuario en la base de datos
+              await controlador.updateUsuario(newuser, oldcorreo: widget.user.email);}
+            else{
+                await controlador.updateUsuario(newuser);
+              }
+            
           }
 
           await controlador.disconnect();
@@ -166,12 +174,12 @@ class Pantalla_Inicio_Paciente_State extends State<Pantalla_Inicio_Paciente> {
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_active),
-            label: "Notificaciones",
+            icon: Icon(Icons.add),
+            label: "Nuevo registro",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.elderly),
-            label: "Listado pacientes",
+            icon: Icon(Icons.history),
+            label: "Historial de registros",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
