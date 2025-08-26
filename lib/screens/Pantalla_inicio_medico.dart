@@ -3,9 +3,11 @@ import '../widgets/Panel_usuario.dart';
 import '../widgets/Panel_medico.dart';
 import '../models/Usuario.dart';
 import '../models/Medico.dart';
+import '../models/Paciente.dart';
 import '../screens/Pantalla_Menu_Principal.dart';
 import '../services/Controlador_Mongo.dart';
 import '../widgets/Editar_usuario.dart';
+import '../widgets/Mis_Pacientes.dart';
 
 class Pantalla_Inicio_Medico extends StatefulWidget {
   Usuario user; // ya no es final
@@ -22,6 +24,7 @@ class Pantalla_Inicio_Medico extends StatefulWidget {
 class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
   int _indiceSeleccionado = 0;
   late List<Widget> _pantallas;
+  List<Paciente> listado_pacientes = [];
     // Control para diálogo abierto
   bool _dialogoAbierto = false;
 
@@ -53,12 +56,40 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
     }
   }
 
+
+  void actualizar_listado_pacientes(List<Paciente> nuevosPacientes) {
+    setState(() {
+        //actualizo mis pacientes
+    
+    });
+  }
+
+  Future<void> obtener_pacientes() async {
+    listado_pacientes = [
+        Paciente(name: "Juan",app_pat:"Perez",app_mat: "Lopez",email: "ddd@", password: "1234", 
+        type_user: "paciente", fecha_nacimiento: DateTime(1990,1,1), telefono: 1234567890),
+
+        
+        Paciente(name: "Maria",app_pat:"Gomez",app_mat: "Ramirez",email: "ddd@", password: "1234",
+        type_user: "paciente", fecha_nacimiento: DateTime(1985,5,15), telefono: 9876543210),
+
+        Paciente(name: "Carlos",app_pat:"Sanchez",app_mat: "Torres",email: "ddd@", password: "1234",
+        type_user: "paciente", fecha_nacimiento: DateTime(1978,3,22), telefono: 4561237890),
+
+      ];
+  }
+
   @override
   void initState() {
     super.initState();
+
+    obtener_pacientes();
+
+
     _pantallas = [
       const Center(child: Text('🏠 Inicio', style: TextStyle(fontSize: 25))),
-      const Center(child: Text('📄 Perfil', style: TextStyle(fontSize: 25))),
+        const Center(child: Text('🏠 Inicio', style: TextStyle(fontSize: 25))),
+      MisPacientes_Widget(usuario: widget.user, list: listado_pacientes),
       Editar_usuario_Widget(
         usuario: widget.user,
         onGuardar: (usuarioEditado) {
@@ -169,14 +200,20 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _indiceSeleccionado,
         onTap: _onItemTapped,
+        selectedItemColor: Colors.blueAccent,   // 👈 color del seleccionado
+        unselectedItemColor: Colors.grey,  
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications_active),
             label: "Notificaciones",
           ),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.person_add),
+            label: "Añadir pacientes",
+          ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.elderly),
-            label: "Listado pacientes",
+            icon: Icon(Icons.list),
+            label: "Mis pacientes",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
