@@ -8,6 +8,7 @@ import '../screens/Pantalla_Menu_Principal.dart';
 import '../services/Controlador_Mongo.dart';
 import '../widgets/Editar_usuario.dart';
 import '../widgets/Mis_Pacientes.dart';
+import '../widgets/Agregar_Pacientes.dart';
 
 class Pantalla_Inicio_Medico extends StatefulWidget {
   Usuario user; // ya no es final
@@ -25,6 +26,8 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
   int _indiceSeleccionado = 0;
   late List<Widget> _pantallas;
   List<Paciente> listado_pacientes = [];
+  List<Paciente> listado_all_pacientes = [];
+  bool _loading = true; // 👈 estado de carga
     // Control para diálogo abierto
   bool _dialogoAbierto = false;
 
@@ -64,7 +67,7 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
     });
   }
 
-  Future<void> obtener_pacientes() async {
+  Future<void> obtener_mis_pacientes() async {
     listado_pacientes = [
         Paciente(name: "Juan",app_pat:"Perez",app_mat: "Lopez",email: "ddd@", password: "1234", 
         type_user: "paciente", fecha_nacimiento: DateTime(1990,1,1), telefono: 1234567890),
@@ -76,28 +79,76 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
         Paciente(name: "Carlos",app_pat:"Sanchez",app_mat: "Torres",email: "ddd@", password: "1234",
         type_user: "paciente", fecha_nacimiento: DateTime(1978,3,22), telefono: 4561237890),
 
+         Paciente(name: "Juan",app_pat:"Perez",app_mat: "Sanchez",email: "ddd@", password: "1234", 
+        type_user: "paciente", fecha_nacimiento: DateTime(1990,1,1), telefono: 1234567890),
+
+        
+        Paciente(name: "Maria",app_pat:"Perez",app_mat: "",email: "ddd@", password: "1234",
+        type_user: "paciente", fecha_nacimiento: DateTime(1985,5,15), telefono: 9876543210),
+
+        Paciente(name: "Carlos",app_pat:"Mon",app_mat: "Lafarte",email: "ddd@", password: "1234",
+        type_user: "paciente", fecha_nacimiento: DateTime(1978,3,22), telefono: 4561237890),
+
+        Paciente(name: "Pedro",app_pat:"Rosales",app_mat: "Espinoza",email: "ddd@", password: "1234", 
+        type_user: "paciente", fecha_nacimiento: DateTime(1990,1,1), telefono: 1234567890),
+
+        
+        Paciente(name: "Rosa",app_pat:"Rosales",app_mat: "Ramirez",email: "ddd@", password: "1234",
+        type_user: "paciente", fecha_nacimiento: DateTime(1985,5,15), telefono: 9876543210),
+
+        Paciente(name: "Cara",app_pat:"Sanchez",app_mat: "Torres",email: "ddd@", password: "1234",
+        type_user: "paciente", fecha_nacimiento: DateTime(1978,3,22), telefono: 4561237890),
       ];
   }
 
+  Future <void> obtener_all_pacientes() async {
+    try {
+      final controlador = Controlador_Mongo();
+      await controlador.connect();
+
+      List<Paciente> pacientes = await controlador.findAllUsuario();
+
+
+      await controlador.disconnect();
+
+      setState(() {
+        listado_all_pacientes = pacientes;
+         print('Pacientes obtenidos: ${listado_all_pacientes}');
+      });
+    } catch (e) {
+      print('Error al obtener pacientes: $e');
+    }
+  }
+
+
+
   @override
-  void initState() {
+    void initState() {
     super.initState();
 
-    obtener_pacientes();
+    Future.delayed(Duration.zero, () async {
+      await obtener_all_pacientes();
+      await obtener_mis_pacientes();
 
-
-    _pantallas = [
-      const Center(child: Text('🏠 Inicio', style: TextStyle(fontSize: 25))),
-        const Center(child: Text('🏠 Inicio', style: TextStyle(fontSize: 25))),
-      MisPacientes_Widget(usuario: widget.user, list: listado_pacientes),
-      Editar_usuario_Widget(
-        usuario: widget.user,
-        onGuardar: (usuarioEditado) {
-          print("Usuario editado: ${usuarioEditado.name}");
-          actualizar_info(usuarioEditado);
-        },
-      ),
-    ];
+      setState(() {
+        _pantallas = [
+          const Center(
+              child: Text('🏠 Inicio', style: TextStyle(fontSize: 25))),
+          AgregarPacientes_Widget(
+              usuario: widget.user, list: listado_all_pacientes),
+          MisPacientes_Widget(
+              usuario: widget.user, list: listado_pacientes),
+          Editar_usuario_Widget(
+            usuario: widget.user,
+            onGuardar: (usuarioEditado) {
+              print("Usuario editado: ${usuarioEditado.name}");
+              actualizar_info(usuarioEditado);
+            },
+          ),
+        ];
+        _loading = false; // 👈 ya cargó todo
+      });
+    });
   }
 
   void _onItemTapped(int index) {
@@ -176,6 +227,12 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(

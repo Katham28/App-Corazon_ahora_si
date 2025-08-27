@@ -74,6 +74,18 @@ Future<WriteResult> updateUsuario(Usuario usuario, {String? oldcorreo}) async {
     return await band;
   }
 
+    Future<List<Paciente>> findAllUsuario() async {
+    int band=0;
+
+   final resultadoPaciente = await mongoService.find('Paciente', {
+      });
+
+      List<Paciente> lista_pacientes = resultadoPaciente.map((doc) => usuarioFromMongoDoc(doc) as Paciente).toList();
+
+      
+    return await lista_pacientes;
+  }
+
 
   Future<int> findExistingUsuario(String correo) async {
     int band=0;

@@ -6,22 +6,22 @@ import '../utils/recursos_Campos.dart';
 
 
 
-class MisPacientes_Widget extends StatefulWidget {
+class AgregarPacientes_Widget extends StatefulWidget {
   Usuario usuario;
   List<Paciente> list = [];
 
 
-  MisPacientes_Widget({
+  AgregarPacientes_Widget({
     super.key,
     required this.usuario,
     required this.list,
   });
 
   @override
-  State<MisPacientes_Widget> createState() => _MisPacientes_Widget_State();
+  State<AgregarPacientes_Widget> createState() => _AgregarPacientes_Widget_State();
 }
 
-class _MisPacientes_Widget_State extends State<MisPacientes_Widget> {
+class _AgregarPacientes_Widget_State extends State<AgregarPacientes_Widget> {
   final _formKey = GlobalKey<FormState>();
   bool _loading = true;
   int _hoveredIndex = -1; //para resaltar la fila al pasar el mouse
@@ -194,9 +194,10 @@ class _MisPacientes_Widget_State extends State<MisPacientes_Widget> {
                     ),
                     subtitle: Text("${p.email}"),
                     trailing: IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      icon: const Icon(Icons.add, color: Colors.blue),
                       onPressed: () {
-                        print("Editar paciente: ${p.name}");
+
+                        print("Agregar paciente: ${p.name}");
                       },
                     ),
                   ),
@@ -225,7 +226,7 @@ Widget build(BuildContext context) {
 
         children: [
         const SizedBox(height: 20),
-         titulo('Mis pacientes', Icon(Icons.list, color: Colors.blueAccent)),
+         titulo('Agregar pacientes', Icon(Icons.list, color: Colors.blueAccent)),
           _buildSearchBar(),
           Expanded(
             child: _buildList(),
