@@ -10,6 +10,7 @@ import '../widgets/Editar_usuario.dart';
 import '../widgets/Mis_Pacientes.dart';
 import '../widgets/Agregar_Pacientes.dart';
 
+
 class Pantalla_Inicio_Medico extends StatefulWidget {
   Usuario user; // ya no es final
 
@@ -60,45 +61,57 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
   }
 
 
-  void actualizar_listado_pacientes(List<Paciente> nuevosPacientes) {
-    setState(() {
-        //actualizo mis pacientes
-    
-    });
+  void agregar_listado_pacientes(Usuario newpaciente) async{
+     try 
+     {
+          final controlador = Controlador_Mongo();
+          await controlador.connect();
+
+
+          final result= await controlador.agregar_en_listado_pacientes(newpaciente,widget.user.email, 'Medico');
+          await controlador.disconnect();
+
+          if(result.nModified == 0){
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('El paciente ya está en tu lista')),
+            );
+            return;
+          }else{
+            setState(() {
+              listado_pacientes.add(newpaciente as Paciente);
+              listado_all_pacientes.remove(newpaciente);
+             });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Paciente agregado a tu lista')),
+            );
+
+          }
+
+          
+    } catch (e) {
+          print('Error al obtener pacientes: $e');
+        }
+
+
   }
 
   Future<void> obtener_mis_pacientes() async {
-    listado_pacientes = [
-        Paciente(name: "Juan",app_pat:"Perez",app_mat: "Lopez",email: "ddd@", password: "1234", 
-        type_user: "paciente", fecha_nacimiento: DateTime(1990,1,1), telefono: 1234567890),
+     try 
+     {
+          final controlador = Controlador_Mongo();
+          await controlador.connect();
 
-        
-        Paciente(name: "Maria",app_pat:"Gomez",app_mat: "Ramirez",email: "ddd@", password: "1234",
-        type_user: "paciente", fecha_nacimiento: DateTime(1985,5,15), telefono: 9876543210),
+           List<Paciente> pacientes = await controlador. buscar_listado_pacientes(widget.user.email, 'Medico');
+           setState(() {
+            listado_pacientes = pacientes;
+            print('Pacientes obtenidos: ${listado_pacientes}');
+          });
 
-        Paciente(name: "Carlos",app_pat:"Sanchez",app_mat: "Torres",email: "ddd@", password: "1234",
-        type_user: "paciente", fecha_nacimiento: DateTime(1978,3,22), telefono: 4561237890),
+          await controlador.disconnect();
 
-         Paciente(name: "Juan",app_pat:"Perez",app_mat: "Sanchez",email: "ddd@", password: "1234", 
-        type_user: "paciente", fecha_nacimiento: DateTime(1990,1,1), telefono: 1234567890),
-
-        
-        Paciente(name: "Maria",app_pat:"Perez",app_mat: "",email: "ddd@", password: "1234",
-        type_user: "paciente", fecha_nacimiento: DateTime(1985,5,15), telefono: 9876543210),
-
-        Paciente(name: "Carlos",app_pat:"Mon",app_mat: "Lafarte",email: "ddd@", password: "1234",
-        type_user: "paciente", fecha_nacimiento: DateTime(1978,3,22), telefono: 4561237890),
-
-        Paciente(name: "Pedro",app_pat:"Rosales",app_mat: "Espinoza",email: "ddd@", password: "1234", 
-        type_user: "paciente", fecha_nacimiento: DateTime(1990,1,1), telefono: 1234567890),
-
-        
-        Paciente(name: "Rosa",app_pat:"Rosales",app_mat: "Ramirez",email: "ddd@", password: "1234",
-        type_user: "paciente", fecha_nacimiento: DateTime(1985,5,15), telefono: 9876543210),
-
-        Paciente(name: "Cara",app_pat:"Sanchez",app_mat: "Torres",email: "ddd@", password: "1234",
-        type_user: "paciente", fecha_nacimiento: DateTime(1978,3,22), telefono: 4561237890),
-      ];
+    } catch (e) {
+          print('Error al obtener pacientes: $e');
+        }
   }
 
   Future <void> obtener_all_pacientes() async {
@@ -135,7 +148,13 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
           const Center(
               child: Text('🏠 Inicio', style: TextStyle(fontSize: 25))),
           AgregarPacientes_Widget(
-              usuario: widget.user, list: listado_all_pacientes),
+              usuario: widget.user, 
+              list: listado_all_pacientes,
+              onAgregar: (newpaciente) {
+                print("Paciente agregado: ${newpaciente.name}");
+                agregar_listado_pacientes(newpaciente);
+                // Aquí puedes actualizar la lista de pacientes si es necesario
+              },),
           MisPacientes_Widget(
               usuario: widget.user, list: listado_pacientes),
           Editar_usuario_Widget(

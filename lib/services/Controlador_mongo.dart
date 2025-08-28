@@ -21,6 +21,43 @@ class Controlador_Mongo {
   }
 
 
+Future<List<Paciente>> buscar_listado_pacientes(String correo, String collectionName) async {
+  try {
+    // Buscar el médico por su correo - find() devuelve List<Map>
+    final resultados = await mongoService.find( collectionName,
+      {'email': correo} );
+
+    final medico = resultados.first;
+
+    final listadoPacientes = medico['listadoPacientes'] as List?;
+    
+    if (listadoPacientes == null || listadoPacientes.isEmpty) {
+      print('📭 El médico no tiene pacientes en su listado');
+      return [];
+    }
+
+    // Convertir cada paciente a objeto Usuario
+    return listadoPacientes.map((p) => usuarioFromMongoDoc(p) as Paciente).toList();
+
+  } catch (e) {
+    print('❌ Error al buscar listado de pacientes: $e');
+    return [];
+  }
+}
+
+
+  Future<WriteResult> agregar_en_listado_pacientes(Usuario newpaciente,String correo,String collectionName) async {
+
+
+  final document = _createsimpleUserDocument(newpaciente);
+
+  print ("añadiendo paciente en listado: ${newpaciente.toJson()} en $collectionName");
+
+  return await mongoService.agregar_A_listado_Por_Correo(collectionName,correo, "listadoPacientes",document);
+
+}
+
+
 
 
 Future<WriteResult> updateUsuario(Usuario usuario, {String? oldcorreo}) async {
@@ -69,7 +106,6 @@ Future<WriteResult> updateUsuario(Usuario usuario, {String? oldcorreo}) async {
         }
     }
 
-      
 
     return await band;
   }
@@ -185,7 +221,7 @@ Usuario usuarioFromMongoDoc(Map<String, dynamic> doc) {
           password: '',
           type_user: p['type_user']?.toString() ?? '',
           fecha_nacimiento: DateTime.tryParse(p['fecha_nacimiento']?.toString() ?? '') ?? DateTime(0),
-          telefono: (p['telefono'] as num?)?.toInt() ?? 0,
+          telefono: (doc['telefono'] )?.toInt() ?? 0,
         )).toList();
 
         return Medico(
@@ -253,6 +289,23 @@ Usuario usuarioFromMongoDoc(Map<String, dynamic> doc) {
       'fecha_nacimiento': usuario.fecha_nacimiento.toIso8601String(),
       'email': usuario.email,
       'password': usuario.password,
+      'type_user': usuario.type_user,
+      'telefono': usuario.telefono,
+    };
+
+
+
+    return baseDocument;
+  }
+
+
+  Map<String, dynamic> _createsimpleUserDocument(Usuario usuario) {
+    final baseDocument = {
+      'name': usuario.name,
+      'app_pat': usuario.app_pat,
+      'app_mat': usuario.app_mat,
+      'fecha_nacimiento': usuario.fecha_nacimiento.toIso8601String(),
+      'email': usuario.email,
       'type_user': usuario.type_user,
       'telefono': usuario.telefono,
     };

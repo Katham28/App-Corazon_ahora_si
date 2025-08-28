@@ -9,12 +9,14 @@ import '../utils/recursos_Campos.dart';
 class AgregarPacientes_Widget extends StatefulWidget {
   Usuario usuario;
   List<Paciente> list = [];
+    final Function(Usuario) onAgregar;
 
 
   AgregarPacientes_Widget({
     super.key,
     required this.usuario,
     required this.list,
+    required this.onAgregar,
   });
 
   @override
@@ -162,12 +164,7 @@ class _AgregarPacientes_Widget_State extends State<AgregarPacientes_Widget> {
             child: MouseRegion(
               onEnter: (_) => setState(() => _hoveredIndex = i),
               onExit: (_) => setState(() => _hoveredIndex = -1),
-              child: InkWell(
-                onTap: () {
-                  print("Paciente seleccionado: ${p.name} ${p.app_pat} ${p.app_mat}");
-
-                },
-                child: AnimatedContainer(
+              child:  AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
@@ -196,14 +193,14 @@ class _AgregarPacientes_Widget_State extends State<AgregarPacientes_Widget> {
                     trailing: IconButton(
                       icon: const Icon(Icons.add, color: Colors.blue),
                       onPressed: () {
-
+                        widget.onAgregar(p);
                         print("Agregar paciente: ${p.name}");
                       },
                     ),
                   ),
                 ),
               ),
-            ),
+            
           );
 
     },

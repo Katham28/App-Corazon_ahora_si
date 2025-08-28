@@ -131,19 +131,33 @@ Future<WriteResult> updateOne(
   }
 
 
- 
+Future<WriteResult> agregar_A_listado_Por_Correo(
+String collectionName,  String correo, String namelistado,Map<String, dynamic> datos) async {
+  _checkConnection();
+  try {
+    final collection = _db.collection(collectionName);
+
+    return await collection.updateOne(
+      where.eq('email', correo),
+      modify..addToSet(namelistado, datos),
+    );
+  } catch (e) {
+    print('Error al agregar paciente al médico: $e');
+    rethrow;
+  }
+}
 
 
+  
+  
 
-  // DeleteOne retorna WriteResult
- Future<WriteResult> deleteOne(
+  // DELETE - MEJORADO
+  Future<WriteResult> deleteOne(
       String collectionName, Map<String, dynamic> filter) async {
     _checkConnection();
     try {
       final collection = _db.collection(collectionName);
-      return await collection.deleteOne(
-        where.eq('_id', filter['_id']), // Ejemplo con ID
-      );
+      return await collection.deleteOne(filter);
     } catch (e) {
       print('Error al eliminar documento: $e');
       rethrow;
