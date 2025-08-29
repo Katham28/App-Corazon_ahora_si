@@ -107,7 +107,8 @@ class _MisPacientes_Widget_State extends State<MisPacientes_Widget> {
                   prefixIcon: Icon(Icons.search, color: Colors.blue),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                )
+                ),
+                 onChanged: (value) => setState(() {}),
               ),
             ),
           ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/Usuario.dart';
 import '../utils/recursos_Campos.dart';
+import '../utils/Dialogo.dart';
 
 
 
@@ -59,7 +60,7 @@ class _AgregarPacientes_Widget_State extends State<AgregarPacientes_Widget> {
   }
 
 // BÚSQUEDA MEJORADA: Busca por separado en nombre, apellido paterno y materno
-  List<Paciente> _applyFilters() {
+List<Paciente> _applyFilters() {
     final query = _nombreCompletoCtrl.text.toLowerCase().trim();
     if (query.isEmpty) return widget.list;
     
@@ -102,6 +103,7 @@ class _AgregarPacientes_Widget_State extends State<AgregarPacientes_Widget> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.blue, width: 1),
               ),
+              
               child: TextField(
                 controller: _nombreCompletoCtrl,
                 decoration: const InputDecoration(
@@ -109,9 +111,14 @@ class _AgregarPacientes_Widget_State extends State<AgregarPacientes_Widget> {
                   prefixIcon: Icon(Icons.search, color: Colors.blue),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                )
+                  
+                ),
+                 onChanged: (value) => setState(() {}),
               ),
+
+               
             ),
+            
           ),
           const SizedBox(width: 8),
           Container(
@@ -133,6 +140,12 @@ class _AgregarPacientes_Widget_State extends State<AgregarPacientes_Widget> {
     );
   }
 
+  @override
+  void dispose() {
+    _nombreCompletoCtrl.dispose(); // ✅ Solo esto, nada más
+    super.dispose();
+  }
+
   Widget _buildList() {
   if (_loading) {
     return const Center(child: CircularProgressIndicator());
@@ -142,7 +155,7 @@ class _AgregarPacientes_Widget_State extends State<AgregarPacientes_Widget> {
         child: Text(_error!, style: const TextStyle(color: Colors.red)));
   }
   if (widget.list.isEmpty) {
-    return const Center(child: Text("No hay pacientes registrados"));
+    return const Center(child: Text("No hay pacientes que registrar"));
   }
 
   // Aplicar filtros de búsqueda

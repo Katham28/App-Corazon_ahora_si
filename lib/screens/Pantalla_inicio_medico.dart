@@ -124,6 +124,9 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
 
       await controlador.disconnect();
 
+
+      pacientes.removeWhere((pacientes) => listado_pacientes.any((p) => p.email == pacientes.email));
+
       setState(() {
         listado_all_pacientes = pacientes;
          print('Pacientes obtenidos: ${listado_all_pacientes}');
@@ -135,13 +138,16 @@ class _Pantalla_Inicio_Medico_State extends State<Pantalla_Inicio_Medico> {
 
 
 
+
+
   @override
     void initState() {
     super.initState();
 
     Future.delayed(Duration.zero, () async {
-      await obtener_all_pacientes();
+
       await obtener_mis_pacientes();
+      await obtener_all_pacientes();
 
       setState(() {
         _pantallas = [
